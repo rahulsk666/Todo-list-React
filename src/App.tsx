@@ -14,10 +14,10 @@ function App() {
   const [newTodo, setNewTodo] = useState("");
 
   useEffect(() => {
-    fectTodos();
+    fetchTodos();
   }, []);
 
-  const fectTodos = async () => {
+  const fetchTodos = async () => {
     const { data, error } = await supabase.from("ToDoLIst").select("*");
 
     if (error) {
@@ -35,6 +35,7 @@ function App() {
     const { data, error } = await supabase
       .from("ToDoLIst")
       .insert([newTodoData])
+      .select()
       .single();
 
     if (error) {
@@ -45,10 +46,10 @@ function App() {
     }
   };
 
-  const CompleteTask = (id: number, isComplete: boolean | null) => async () => {
+  const CompleteTask = async (id: number, isComplete: boolean | null) => {
     const { data, error } = await supabase
       .from("ToDoLIst")
-      .update({ isCompleted: isComplete })
+      .update({ isCompleted: !isComplete })
       .eq("id", id)
       .single();
 
@@ -57,11 +58,12 @@ function App() {
     } else {
       settodoList((prevToDO) =>
         prevToDO.map((todo) =>
-          todo.id === id ? { ...todo, isCompleted: true } : todo
+          todo.id === id ? { ...todo, isCompleted: !isComplete } : todo
         )
       );
     }
   };
+
   const deleteTodo = async (id: number) => {
     const { data, error } = await supabase
       .from("ToDoLIst")
@@ -83,9 +85,8 @@ function App() {
         <div>
           <input
             type="text"
-            name="todo"
-            id="todo"
             placeholder="New Todo..."
+            value={newTodo}
             onChange={(e) => setNewTodo(e.target.value)}
           />
           <button onClick={addTodo}> Add Todo Button</button>
@@ -93,11 +94,10 @@ function App() {
         <ul>
           {todoList.map((todo) => (
             <li key={todo.id}>
-              <span>{todo.name}</span>
+              <p>{todo.name}</p>
               <button onClick={() => CompleteTask(todo.id, todo.isCompleted)}>
-                {todo.isCompleted ? "✔️" : "❌"}
+                {todo.isCompleted ? "Undo" : "Complete Task"}
               </button>
-              // Delete icon
               <button onClick={() => deleteTodo(todo.id)}>Delete Todo</button>
             </li>
           ))}
